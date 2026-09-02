@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Controle de Pontos — Livelo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS
+   ========================================================= */
+:root{
+  --ink: #161328;
+  --ink-soft: #4B4768;
+  --bg: #F4F3FA;
+  --bg-alt: #ECEAF7;
+  --surface: #FFFFFF;
+  --surface-2: #FAF9FE;
+  --border: #E4E1F2;
+  --border-soft: #EEEDF7;
+
+  --primary: #4F3DF5;
+  --primary-2: #8B5CF6;
+  --primary-ink: #FFFFFF;
+  --primary-soft: #EEEAFF;
+
+  --green: #0F9D6B;
+  --green-soft: #E3F7EE;
+  --amber: #C87A0A;
+  --amber-soft: #FCF1DE;
+  --red: #D6335A;
+  --red-soft: #FCE7EC;
+  --gray: #8A87A3;
+  --gray-soft: #EDECF6;
+
+  --shadow-sm: 0 1px 2px rgba(22,19,40,.06);
+  --shadow-md: 0 8px 24px rgba(22,19,40,.08);
+  --shadow-lg: 0 20px 48px rgba(22,19,40,.16);
+
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 22px;
+
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+
+  --sidebar-w: 248px;
+}
+
+[data-theme="dark"]{
+  --ink: #F1EFFB;
+  --ink-soft: #B7B2D6;
+  --bg: #100E1E;
+  --bg-alt: #171429;
+  --surface: #1B1832;
+  --surface-2: #211E3A;
+  --border: #322C57;
+  --border-soft: #292447;
+
+  --primary: #8B7CFF;
+  --primary-2: #B79CFF;
+  --primary-ink: #14102B;
+  --primary-soft: #262047;
+
+  --green: #34D399;
+  --green-soft: #163A2C;
+  --amber: #F4B94A;
+  --amber-soft: #3D2F13;
+  --red: #F0648A;
+  --red-soft: #3B1A26;
+  --gray: #8B87AC;
+  --gray-soft: #241F3E;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.35);
+  --shadow-lg: 0 20px 48px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease, color .25s ease;
+}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-0.01em;}
+p{margin:0;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+::selection{background:var(--primary-soft); color:var(--primary);}
+a{color:inherit;}
+
+.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:26px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:0 8px;
+}
+.brand-mark{
+  width:36px; height:36px; border-radius:11px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; flex-shrink:0;
+  box-shadow:0 6px 16px rgba(79,61,245,.35);
+}
+.brand-text{display:flex; flex-direction:column; line-height:1.15;}
+.brand-text strong{font-family:var(--font-display); font-size:15px; font-weight:700;}
+.brand-text span{font-size:11.5px; color:var(--ink-soft);}
+
+.nav{display:flex; flex-direction:column; gap:2px;}
+.nav-item{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px;
+  border-radius:12px;
+  color:var(--ink-soft);
+  font-size:14.5px; font-weight:600;
+  border:none; background:transparent;
+  width:100%; text-align:left;
+  transition:background .15s ease, color .15s ease;
+}
+.nav-item svg{flex-shrink:0; opacity:.85;}
+.nav-item:hover{background:var(--bg-alt); color:var(--ink);}
+.nav-item.active{background:var(--primary-soft); color:var(--primary);}
+.nav-item.active svg{opacity:1;}
+
+.sidebar-foot{
+  margin-top:auto;
+  display:flex; flex-direction:column; gap:10px;
+}
+.theme-toggle{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border-radius:12px;
+  background:var(--bg-alt);
+  font-size:13px; font-weight:600; color:var(--ink-soft);
+}
+.switch{
+  width:38px; height:22px; border-radius:99px; background:var(--border);
+  position:relative; border:none; flex-shrink:0;
+}
+.switch::after{
+  content:''; position:absolute; top:2px; left:2px; width:18px; height:18px;
+  border-radius:50%; background:#fff; box-shadow:var(--shadow-sm);
+  transition:transform .2s ease;
+}
+.switch.on{background:var(--primary);}
+.switch.on::after{transform:translateX(16px);}
+
+/* topbar (mobile) */
+.topbar{
+  display:none;
+  align-items:center; justify-content:space-between;
+  padding:14px 16px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:30;
+}
+.topbar .brand-text strong{font-size:14px;}
+.hamburger{
+  width:38px; height:38px; border-radius:10px; border:1px solid var(--border);
+  background:var(--surface-2); display:flex; align-items:center; justify-content:center;
+}
+
+.content{
+  flex:1;
+  min-width:0;
+  padding:32px 40px 80px;
+}
+.view{display:none;}
+.view.active{display:block; animation:fadein .35s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+.view-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  margin-bottom:26px; flex-wrap:wrap;
+}
+.view-head h1{font-size:26px; font-weight:800;}
+.view-head p{color:var(--ink-soft); font-size:14px; margin-top:4px;}
+
+.demo-banner{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:var(--primary-soft); color:var(--primary);
+  border:1px solid var(--primary); border-style:dashed;
+  padding:10px 16px; border-radius:var(--radius-s);
+  font-size:13px; font-weight:600; margin-bottom:20px;
+}
+.demo-banner button{
+  background:transparent; border:1px solid currentColor; color:inherit;
+  padding:6px 12px; border-radius:8px; font-size:12.5px; font-weight:700;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px; border-radius:11px; border:1px solid transparent;
+  font-size:13.5px; font-weight:700; white-space:nowrap;
+  transition:transform .1s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2)); color:#fff; box-shadow:0 8px 20px rgba(79,61,245,.28);}
+.btn-primary:hover{box-shadow:0 10px 24px rgba(79,61,245,.4);}
+.btn-ghost{background:var(--surface); color:var(--ink); border-color:var(--border);}
+.btn-ghost:hover{background:var(--bg-alt);}
+.btn-soft{background:var(--primary-soft); color:var(--primary);}
+.btn-danger{background:var(--red-soft); color:var(--red);}
+.btn-sm{padding:7px 11px; font-size:12.5px; border-radius:9px;}
+.btn-icon{padding:8px; border-radius:9px;}
+.btn[disabled]{opacity:.45; pointer-events:none;}
+
+/* =========================================================
+   CARDS / GRID
+   ========================================================= */
+.grid-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+  margin-bottom:28px;
+}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-m);
+  padding:20px;
+  box-shadow:var(--shadow-sm);
+  position:relative;
+  overflow:hidden;
+}
+.card-label{
+  display:flex; align-items:center; gap:8px;
+  font-size:12.5px; font-weight:700; color:var(--ink-soft);
+  margin-bottom:12px;
+}
+.card-icon{
+  width:26px; height:26px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.card-value{font-family:var(--font-display); font-size:26px; font-weight:800; line-height:1.1;}
+.card-sub{font-size:12px; color:var(--ink-soft); margin-top:6px;}
+.card.warn{border-color:var(--red); background:linear-gradient(180deg, var(--red-soft), var(--surface) 60%);}
+.card.warn .card-value{color:var(--red);}
+.card.warn .card-icon{background:var(--red); color:#fff;}
+.card.ok .card-icon{background:var(--green); color:#fff;}
+.card.amber .card-icon{background:var(--amber); color:#fff;}
+.card.prim .card-icon{background:var(--primary); color:#fff;}
+
+.progress-bar{width:100%; height:8px; border-radius:99px; background:var(--gray-soft); overflow:hidden; margin-top:10px;}
+.progress-bar > span{display:block; height:100%; background:linear-gradient(90deg,var(--primary),var(--primary-2)); border-radius:99px; transition:width .4s ease;}
+
+.section{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-l);
+  padding:22px;
+  margin-bottom:22px;
+  box-shadow:var(--shadow-sm);
+}
+.section-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-bottom:16px; flex-wrap:wrap;
+}
+.section-head h2{font-size:17px; font-weight:700;}
+.section-head p.hint{font-size:12.5px; color:var(--ink-soft); margin-top:3px; font-weight:400;}
+
+.two-col{display:grid; grid-template-columns:1.3fr .9fr; gap:18px;}
+@media(max-width:980px){.two-col{grid-template-columns:1fr;}}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+.table-wrap{overflow-x:auto; border-radius:var(--radius-s); border:1px solid var(--border-soft);}
+table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:720px;}
+thead th{
+  text-align:left; padding:11px 14px; background:var(--surface-2);
+  color:var(--ink-soft); font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+thead th.sortable{cursor:pointer; user-select:none;}
+thead th.sortable:hover{color:var(--primary);}
+tbody td{padding:12px 14px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--surface-2);}
+td.num, th.num{text-align:right; font-family:var(--font-mono);}
+.row-actions{display:flex; gap:6px; justify-content:flex-end;}
+.empty-row td{text-align:center; padding:36px 14px; color:var(--ink-soft);}
+
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:99px; font-size:11.5px; font-weight:700;
+}
+.badge .dot{width:6px; height:6px; border-radius:50%; background:currentColor;}
+.badge.pendente{background:var(--amber-soft); color:var(--amber);}
+.badge.atrasado{background:var(--red-soft); color:var(--red);}
+.badge.creditado{background:var(--green-soft); color:var(--green);}
+.badge.cancelado{background:var(--gray-soft); color:var(--gray);}
+
+.filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.filters select, .filters input[type="text"], .filters input[type="date"]{
+  padding:9px 12px; border-radius:10px; border:1px solid var(--border);
+  background:var(--surface-2); color:var(--ink); font-size:13px; min-width:120px;
+}
+.filters input[type="text"]{min-width:180px;}
+
+/* =========================================================
+   FORMS / MODAL
+   ========================================================= */
+.form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.form-grid .full{grid-column:1/-1;}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr;}}
+.field{display:flex; flex-direction:column; gap:6px;}
+.field label{font-size:12.5px; font-weight:700; color:var(--ink-soft);}
+.field input, .field select, .field textarea{
+  padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+  background:var(--surface-2); color:var(--ink); font-size:13.5px;
+  outline:none; transition:border-color .15s ease;
+}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--primary);}
+.field textarea{resize:vertical; min-height:60px;}
+.field .help{font-size:11.5px; color:var(--ink-soft); font-weight:400;}
+.radio-group{display:flex; gap:6px; flex-wrap:wrap;}
+.radio-chip{
+  padding:7px 12px; border-radius:9px; border:1px solid var(--border);
+  font-size:12.5px; font-weight:600; background:var(--surface-2); color:var(--ink-soft);
+}
+.radio-chip.active{background:var(--primary); border-color:var(--primary); color:#fff;}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(15,12,30,.5); backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center; padding:20px; z-index:100;
+  opacity:0; pointer-events:none; transition:opacity .18s ease;
+}
+.modal-overlay.show{opacity:1; pointer-events:auto;}
+.modal{
+  background:var(--surface); border-radius:var(--radius-l); padding:26px;
+  width:100%; max-width:560px; max-height:88vh; overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  transform:translateY(14px) scale(.98); transition:transform .18s ease;
+}
+.modal-overlay.show .modal{transform:none;}
+.modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+.modal-head h3{font-size:18px; font-weight:700;}
+.modal-close{width:32px; height:32px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.modal-foot{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+.modal.small{max-width:400px;}
+
+/* =========================================================
+   TOASTS
+   ========================================================= */
+#toast-root{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:10px;}
+.toast{
+  background:var(--ink); color:var(--bg); padding:12px 16px; border-radius:11px;
+  font-size:13px; font-weight:600; box-shadow:var(--shadow-lg);
+  display:flex; align-items:center; gap:10px;
+  animation:toastin .25s ease;
+  max-width:320px;
+}
+[data-theme="dark"] .toast{background:var(--surface-2); color:var(--ink); border:1px solid var(--border);}
+@keyframes toastin{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+.alert-list{display:flex; flex-direction:column; gap:10px;}
+.alert{
+  display:flex; gap:12px; align-items:flex-start;
+  padding:13px 15px; border-radius:12px; font-size:13.5px; font-weight:600;
+}
+.alert svg{flex-shrink:0; margin-top:1px;}
+.alert.red{background:var(--red-soft); color:var(--red);}
+.alert.amber{background:var(--amber-soft); color:var(--amber);}
+.alert.green{background:var(--green-soft); color:var(--green);}
+.alert span.sub{display:block; font-weight:400; color:var(--ink-soft); margin-top:2px; font-size:12.5px;}
+
+/* =========================================================
+   CHARTS / MISC
+   ========================================================= */
+.chart-box{position:relative; height:260px;}
+.chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media(max-width:900px){.chart-grid{grid-template-columns:1fr;}}
+
+.kpi-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+.kpi{background:var(--surface-2); border:1px solid var(--border-soft); border-radius:12px; padding:14px;}
+.kpi .lbl{font-size:11.5px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.03em;}
+.kpi .val{font-family:var(--font-display); font-size:19px; font-weight:800; margin-top:4px;}
+
+.scenario-table td.date{font-weight:700;}
+.pill-group{display:flex; gap:8px; flex-wrap:wrap;}
+.pill{padding:5px 11px; border-radius:99px; background:var(--gray-soft); color:var(--ink-soft); font-size:11.5px; font-weight:700;}
+.pill.prim{background:var(--primary-soft); color:var(--primary);}
+
+.empty-state{text-align:center; padding:50px 20px; color:var(--ink-soft);}
+.empty-state svg{margin-bottom:12px; opacity:.5;}
+.empty-state h4{font-size:15px; margin-bottom:6px; color:var(--ink);}
+.empty-state p{font-size:13px;}
+
+/* calendar */
+.cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.cal-nav{display:flex; align-items:center; gap:8px;}
+.cal-title{font-family:var(--font-display); font-weight:800; font-size:16px; min-width:150px; text-align:center;}
+.cal-legend{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; font-size:12px; color:var(--ink-soft);}
+.cal-legend span{display:inline-flex; align-items:center; gap:6px; font-weight:600;}
+.cal-legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+.cal-dow{text-align:center; font-size:11px; font-weight:700; color:var(--ink-soft); padding-bottom:6px; text-transform:uppercase;}
+.cal-cell{
+  min-height:78px; border-radius:10px; border:1px solid var(--border-soft);
+  padding:6px; background:var(--surface-2); display:flex; flex-direction:column; gap:3px;
+}
+.cal-cell.out{opacity:.35;}
+.cal-cell.today{border-color:var(--primary); box-shadow:0 0 0 1px var(--primary) inset;}
+.cal-daynum{font-size:11.5px; font-weight:700; color:var(--ink-soft);}
+.cal-event{
+  font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; cursor:pointer;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cal-event.fixo{background:var(--primary-soft); color:var(--primary);}
+.cal-event.pendente{background:var(--amber-soft); color:var(--amber);}
+.cal-event.atrasado{background:var(--red-soft); color:var(--red);}
+.cal-event.creditado{background:var(--green-soft); color:var(--green);}
+@media(max-width:700px){.cal-cell{min-height:56px;} .cal-event{font-size:9px;}}
+
+/* metas list */
+.meta-card{border:1px solid var(--border); border-radius:var(--radius-m); padding:18px; margin-bottom:14px; background:var(--surface-2);}
+.meta-card-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.meta-card-head h4{font-size:15.5px; font-weight:700;}
+.meta-tag{font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px;}
+.meta-tag.principal{background:var(--primary); color:#fff;}
+
+.ritmo-badge{display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; font-size:12.5px; font-weight:700;}
+.ritmo-badge.green{background:var(--green-soft); color:var(--green);}
+.ritmo-badge.amber{background:var(--amber-soft); color:var(--amber);}
+.ritmo-badge.red{background:var(--red-soft); color:var(--red);}
+
+.settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media(max-width:800px){.settings-grid{grid-template-columns:1fr;}}
+
+/* responsive */
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .topbar{display:flex;}
+  .content{padding:20px 16px 70px;}
+  .sidebar.mobile-open{
+    display:flex; position:fixed; inset:0 auto 0 0; z-index:60; width:80vw; max-width:300px;
+    box-shadow:var(--shadow-lg);
+  }
+  .sidebar-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:55;}
+}
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M3 17l6-6 4 4 8-9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h6v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="brand-text"><strong>Meu Controle</strong><span>de Pontos Livelo</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item" data-view="dashboard">${'{ICON:home}'}<span>Dashboard</span></button>
+      <button class="nav-item" data-view="pendentes">${'{ICON:clock}'}<span>Pontos Pendentes</span></button>
+      <button class="nav-item" data-view="historico">${'{ICON:list}'}<span>Histórico</span></button>
+      <button class="nav-item" data-view="metas">${'{ICON:target}'}<span>Metas</span></button>
+      <button class="nav-item" data-view="simulador">${'{ICON:calc}'}<span>Simulador</span></button>
+      <button class="nav-item" data-view="calendario">${'{ICON:calendar}'}<span>Calendário</span></button>
+      <button class="nav-item" data-view="config">${'{ICON:gear}'}<span>Configurações</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="theme-toggle">
+        <span>Modo escuro</span>
+        <button class="switch" id="theme-switch"></button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop hidden" id="sidebar-backdrop"></div>
+
+  <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+    <!-- TOPBAR (mobile) -->
+    <div class="topbar">
+      <button class="hamburger" id="hamburger-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="brand-text" style="align-items:center; text-align:center;"><strong>Meu Controle de Pontos</strong></div>
+      <div style="width:38px;"></div>
+    </div>
+
+    <main class="content">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <section class="view active" id="view-dashboard">
+        <div class="view-head">
+          <div><h1>Meu Controle de Pontos</h1><p>Acompanhe seus pontos, pendências e metas de acúmulo.</p></div>
+        </div>
+        <div id="demo-banner-dash"></div>
+
+        <div class="grid-cards" id="dash-cards"></div>
+
+        <div class="two-col">
+          <div class="section">
+            <div class="section-head"><h2>Atenção</h2></div>
+            <div class="alert-list" id="dash-alerts"></div>
+          </div>
+          <div class="section">
+            <div class="section-head"><h2>Ritmo da meta principal</h2></div>
+            <div id="dash-ritmo"></div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="section">
+            <div class="section-head"><h2>Evolução dos pontos</h2><p class="hint">Saldo acumulado ao longo do tempo</p></div>
+            <div class="chart-box"><canvas id="chart-evolucao"></canvas></div>
+          </div>
+          <div class="section">
+            <div class="section-head"><h2>Origem dos pontos</h2><p class="hint">Distribuição por tipo</p></div>
+            <div class="chart-box"><canvas id="chart-origem"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><h2>Indicadores do mês</h2></div>
+          <div class="kpi-row" id="dash-kpis"></div>
+        </div>
+      </section>
+
+      <!-- ===================== PENDENTES ===================== -->
+      <section class="view" id="view-pendentes">
+        <div class="view-head">
+          <div><h1>Pontos Pendentes</h1><p>Compras e atividades que ainda vão gerar pontos.</p></div>
+          <button class="btn btn-primary" id="btn-add-pendencia">${'{ICON:plus}'}<span>Adicionar pontuação pendente</span></button>
+        </div>
+        <div class="section">
+          <div class="filters">
+            <input type="text" id="pend-search" placeholder="Buscar por descrição ou parceiro">
+            <select id="pend-filter-status">
+              <option value="todos">Todos os status</option>
+              <option value="pendente">Pendente</option>
+              <option value="atrasado">Atrasado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <select id="pend-filter-tipo">
+              <option value="todos">Todos os tipos</option>
+              <option value="Compra">Compra</option>
+              <option value="Viagem">Viagem</option>
+              <option value="Promoção">Promoção</option>
+              <option value="Assinatura">Assinatura</option>
+              <option value="Transferência">Transferência</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table id="tbl-pendencias">
+              <thead><tr>
+                <th class="sortable" data-sort="descricao">Descrição</th>
+                <th class="sortable" data-sort="parceiro">Parceiro</th>
+                <th class="sortable" data-sort="tipo">Tipo</th>
+                <th class="num sortable" data-sort="pontos">Pontos</th>
+                <th class="sortable" data-sort="dataCompra">Data</th>
+                <th class="sortable" data-sort="dataPrevista">Previsão</th>
+                <th>Status</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="tbl-pendencias-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HISTÓRICO ===================== -->
+      <section class="view" id="view-historico">
+        <div class="view-head">
+          <div><h1>Histórico de Pontos</h1><p>Pontos já creditados ou cancelados.</p></div>
+        </div>
+        <div class="section">
+          <div class="filters">
+            <input type="text" id="hist-search" placeholder="Buscar por descrição ou parceiro">
+            <select id="hist-filter-status">
+              <option value="todos">Todos</option>
+              <option value="creditado">Creditado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <select id="hist-filter-tipo">
+              <option value="todos">Todos os tipos</option>
+              <option value="Compra">Compra</option>
+              <option value="Viagem">Viagem</option>
+              <option value="Promoção">Promoção</option>
+              <option value="Assinatura">Assinatura</option>
+              <option value="Transferência">Transferência</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table id="tbl-historico">
+              <thead><tr>
+                <th class="sortable" data-sort="descricao">Descrição</th>
+                <th class="sortable" data-sort="parceiro">Parceiro</th>
+                <th class="sortable" data-sort="tipo">Tipo</th>
+                <th class="num sortable" data-sort="pontos">Pontos</th>
+                <th class="sortable" data-sort="dataCompra">Data compra</th>
+                <th class="sortable" data-sort="dataPrevista">Data prevista</th>
+                <th class="sortable" data-sort="dataCredito">Data do crédito</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="tbl-historico-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== METAS ===================== -->
+      <section class="view" id="view-metas">
+        <div class="view-head">
+          <div><h1>Minhas Metas</h1><p>Defina objetivos e acompanhe o quanto falta.</p></div>
+          <button class="btn btn-primary" id="btn-add-meta">${'{ICON:plus}'}<span>Criar nova meta</span></button>
+        </div>
+        <div id="metas-list"></div>
+      </section>
+
+      <!-- ===================== SIMULADOR ===================== -->
+      <section class="view" id="view-simulador">
+        <div class="view-head">
+          <div><h1>Quanto preciso juntar?</h1><p>Simule sua meta sem precisar salvar nada.</p></div>
+        </div>
+        <div class="two-col">
+          <div class="section">
+            <div class="section-head"><h2>Dados da simulação</h2></div>
+            <div class="form-grid">
+              <div class="field"><label>Quantos pontos eu já tenho?</label><input type="text" inputmode="numeric" id="sim-atual" value="0"></div>
+              <div class="field"><label>Quantos pontos eu quero ter?</label><input type="text" inputmode="numeric" id="sim-meta" value="0"></div>
+              <div class="field"><label>Data final da meta</label><input type="date" id="sim-data"></div>
+              <div class="field"><label>Pontos fixos mensais (assinatura)</label><input type="text" inputmode="numeric" id="sim-fixos" value="0"></div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-head"><h2>Para atingir sua meta, você precisa...</h2></div>
+            <div id="sim-result"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CALENDÁRIO ===================== -->
+      <section class="view" id="view-calendario">
+        <div class="view-head">
+          <div><h1>Calendário de Créditos</h1><p>Datas previstas e realizadas de recebimento dos pontos.</p></div>
+        </div>
+        <div class="section">
+          <div class="cal-head">
+            <div class="cal-title" id="cal-title"></div>
+            <div class="cal-nav">
+              <button class="btn btn-ghost btn-sm" id="cal-prev">◀</button>
+              <button class="btn btn-ghost btn-sm" id="cal-today">Hoje</button>
+              <button class="btn btn-ghost btn-sm" id="cal-next">▶</button>
+            </div>
+          </div>
+          <div class="cal-legend">
+            <span><i style="background:var(--primary)"></i>Pontos fixos (assinatura)</span>
+            <span><i style="background:var(--amber)"></i>Pendente</span>
+            <span><i style="background:var(--red)"></i>Atrasado</span>
+            <span><i style="background:var(--green)"></i>Creditado</span>
+          </div>
+          <div class="cal-grid" id="cal-dow"></div>
+          <div class="cal-grid" id="cal-grid" style="margin-top:6px;"></div>
+        </div>
+      </section>
+
+      <!-- ===================== CONFIGURAÇÕES ===================== -->
+      <section class="view" id="view-config">
+        <div class="view-head">
+          <div><h1>Configurações</h1><p>Ajuste os parâmetros gerais da sua conta de pontos.</p></div>
+        </div>
+        <div class="settings-grid">
+          <div class="section">
+            <div class="section-head"><h2>Saldo e assinatura</h2></div>
+            <div class="form-grid">
+              <div class="field full"><label>Saldo inicial (pontos que você já tinha antes de usar o app)</label><input type="text" inputmode="numeric" id="cfg-saldo-inicial"></div>
+              <div class="field"><label>Pontos fixos mensais</label><input type="text" inputmode="numeric" id="cfg-fixos"></div>
+              <div class="field"><label>Dia do mês do recebimento</label><input type="number" min="1" max="31" id="cfg-dia"></div>
+              <div class="field full"><label>Meta principal</label><select id="cfg-meta-principal"></select><span class="help">Usada nos cálculos de ritmo e nos cenários do dashboard.</span></div>
+            </div>
+            <div style="margin-top:16px;"><button class="btn btn-primary" id="btn-save-config">Salvar configurações</button></div>
+          </div>
+          <div class="section">
+            <div class="section-head"><h2>Dados</h2></div>
+            <p class="hint" style="margin-bottom:14px;">Seus dados ficam salvos apenas neste navegador (localStorage). Faça backup regularmente.</p>
+            <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start;">
+              <button class="btn btn-ghost" id="btn-export">${'{ICON:download}'}<span>Exportar dados (JSON)</span></button>
+              <button class="btn btn-ghost" id="btn-import-trigger">${'{ICON:upload}'}<span>Importar backup (JSON)</span></button>
+              <input type="file" id="btn-import" accept="application/json" class="hidden">
+              <button class="btn btn-danger" id="btn-reset-all">${'{ICON:trash}'}<span>Apagar todos os dados</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+/* =====================================================================================
+   ICONS — inline SVG set (stroke, 20x20, currentColor)
+   ===================================================================================== */
+const ICONS = {
+  home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 11.5L12 4l8 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  clock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  list: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="6" r="1.4" fill="currentColor"/><circle cx="4" cy="12" r="1.4" fill="currentColor"/><circle cx="4" cy="18" r="1.4" fill="currentColor"/></svg>',
+  target: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
+  calc: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="3.5" width="14" height="17" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 7.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8.3" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="15.7" cy="12" r="1" fill="currentColor"/><circle cx="8.3" cy="15.6" r="1" fill="currentColor"/><circle cx="12" cy="15.6" r="1" fill="currentColor"/><circle cx="15.7" cy="15.6" r="1" fill="currentColor"/></svg>',
+  calendar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="5.5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2"/><path d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M17.7 6.3l-1.55 1.55M7.85 16.15L6.3 17.7M17.7 17.7l-1.55-1.55M7.85 7.85L6.3 6.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  edit: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20l.9-4.2L15.6 5.1a1.4 1.4 0 0 1 2 0l1.3 1.3a1.4 1.4 0 0 1 0 2L8.2 19.1 4 20z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  trash: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0v12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 18.5h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 20V9m0 0l-4 4m4-4l4 4M5 4.5h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  warn: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 4l9.5 16.5H2.5L12 4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1" fill="currentColor"/></svg>',
+  copy: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="8.5" y="8.5" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5" stroke="currentColor" stroke-width="1.8"/></svg>',
+  empty: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 14.5s1.3 1.5 3.5 1.5 3.5-1.5 3.5-1.5M9 9.5h.01M15 9.5h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+};
+// Replace placeholders left in the HTML template above with real icon markup.
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-item, #btn-add-pendencia, #btn-add-meta, #btn-export, #btn-import-trigger, #btn-reset-all').forEach(el=>{
+    el.innerHTML = el.innerHTML.replace(/\$\{'\{ICON:(\w+)\}'\}/g, (m,name)=> ICONS[name]||'');
+  });
+});
+
+/* =====================================================================================
+   CONSTANTS & UTILS
+   ===================================================================================== */
+const LS_KEY = 'liveloControleState_v1';
+const TIPOS = ['Compra','Viagem','Promoção','Assinatura','Transferência','Outros'];
+const PRAZOS = [
+  {v:'mesmo', label:'Mesmo dia', dias:0},
+  {v:'7', label:'7 dias', dias:7},
+  {v:'15', label:'15 dias', dias:15},
+  {v:'30', label:'30 dias', dias:30},
+  {v:'45', label:'45 dias', dias:45},
+  {v:'60', label:'60 dias', dias:60},
+  {v:'90', label:'90 dias', dias:90},
+  {v:'personalizado', label:'Personalizado', dias:null}
+];
+const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function todayLocal(){ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function parseLocalDate(str){
+  if(!str) return null;
+  const parts = str.split('-');
+  if(parts.length!==3) return null;
+  const [y,m,d] = parts.map(Number);
+  return new Date(y, m-1, d);
+}
+function toISO(date){ return date.getFullYear()+'-'+pad2(date.getMonth()+1)+'-'+pad2(date.getDate()); }
+function formatDateBR(str){
+  const d = parseLocalDate(str);
+  if(!d) return '—';
+  return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function addDays(date, n){ const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+function addMonths(date, n){
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth()+n);
+  const lastDay = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
+  return d;
+}
+function diffDays(a,b){ return Math.round((b-a)/86400000); }
+function formatNumber(n){
+  n = Math.round(Number(n)||0);
+  return n.toLocaleString('pt-BR');
+}
+function parseNumberInput(str){
+  if(typeof str === 'number') return str;
+  if(!str) return 0;
+  const cleaned = String(str).replace(/[^\d,-]/g,'').replace(/\.(?=\d{3})/g,'').replace(',', '.');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+function monthsRemaining(today, end){
+  const days = diffDays(today, end);
+  if(days <= 0) return 0;
+  return Math.max(1, Math.ceil(days/30.44));
+}
+function monthKey(dateStr){
+  const d = parseLocalDate(dateStr);
+  return d.getFullYear()+'-'+pad2(d.getMonth()+1);
+}
+function escapeHTML(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =====================================================================================
+   STATE
+   ===================================================================================== */
+let state = null;
+
+function seedDemoState(){
+  const today = todayLocal();
+  const mk = (offsetDays) => toISO(addDays(today, offsetDays));
+  const items = [
+    { id: uid(), descricao:'Compra Nike', parceiro:'Nike', tipo:'Compra', dataCompra: mk(-30), pontos:2500, dataReferencia: mk(-15), prazoTipo:'45', dataPrevista: mk(-5), observacoes:'Prazo informado pelo parceiro: até 45 dias após a entrega.', status:null, dataCredito:null, createdAt: Date.now()-6 },
+    { id: uid(), descricao:'Compra Amazon', parceiro:'Amazon', tipo:'Compra', dataCompra: mk(-10), pontos:1200, dataReferencia: mk(-10), prazoTipo:'30', dataPrevista: mk(20), observacoes:'', status:null, dataCredito:null, createdAt: Date.now()-5 },
+    { id: uid(), descricao:'Passagem Recife → São Paulo', parceiro:'LATAM', tipo:'Viagem', dataCompra: mk(-20), pontos:4000, dataReferencia: mk(10), prazoTipo:'personalizado', dataPrevista: mk(25), observacoes:'Pontos creditados após a realização da viagem.', status:null, dataCredito:null, createdAt: Date.now()-4 },
+    { id: uid(), descricao:'Compra Booking', parceiro:'Booking.com', tipo:'Viagem', dataCompra: mk(-3), pontos:3500, dataReferencia: mk(-3), prazoTipo:'60', dataPrevista: mk(57), observacoes:'', status:null, dataCredito:null, createdAt: Date.now()-3 },
+    { id: uid(), descricao:'Compra Renner', parceiro:'Renner', tipo:'Compra', dataCompra: mk(-40), pontos:800, dataReferencia: mk(-40), prazoTipo:'30', dataPrevista: mk(-10), observacoes:'', status:'creditado', dataCredito: mk(-8), createdAt: Date.now()-7 },
+    { id: uid(), descricao:'Promoção pontos em dobro', parceiro:'Livelo', tipo:'Promoção', dataCompra: mk(-2), pontos:600, dataReferencia: mk(-2), prazoTipo:'7', dataPrevista: mk(5), observacoes:'', status:null, dataCredito:null, createdAt: Date.now()-2 }
+  ];
+  const metaId = uid();
+  const metas = [
+    { id: metaId, nome:'Minha próxima viagem', quantidade:50000, dataLimite: toISO(addMonths(today,9)), saldoConsideradoTipo:'atual', valorPersonalizado:0, createdAt: Date.now()-1 }
+  ];
+  return {
+    config: { saldoInicial:8500, pontosFixosMensais:1000, diaRecebimento:10, metaPrincipalId: metaId, isDemo:true, theme:'light' },
+    items, metas
+  };
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.config && Array.isArray(parsed.items) && Array.isArray(parsed.metas)){
+        return parsed;
+      }
+    }
+  }catch(e){ console.warn('Erro ao ler localStorage, iniciando dados de demonstração.', e); }
+  const seeded = seedDemoState();
+  persist(seeded);
+  return seeded;
+}
+function persist(s){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
+  catch(e){ toast('Não foi possível salvar no armazenamento local do navegador.', 'red'); }
+}
+function saveState(){ persist(state); }
+
+/* =====================================================================================
+   DERIVED / BUSINESS LOGIC
+   ===================================================================================== */
+function getStatus(item){
+  if(item.status === 'creditado') return 'creditado';
+  if(item.status === 'cancelado') return 'cancelado';
+  const today = todayLocal();
+  const prev = parseLocalDate(item.dataPrevista);
+  if(prev && prev < today) return 'atrasado';
+  return 'pendente';
+}
+function statusLabel(s){
+  return {pendente:'Pendente', atrasado:'Atrasado', creditado:'Creditado', cancelado:'Cancelado'}[s] || s;
+}
+function activeItems(){ return state.items.filter(i => getStatus(i) !== 'cancelado' && getStatus(i) !== 'creditado'); }
+function creditedItems(){ return state.items.filter(i => getStatus(i) === 'creditado'); }
+
+function totalCreditado(){ return creditedItems().reduce((a,i)=>a+Number(i.pontos||0),0); }
+function saldoAtual(){ return Number(state.config.saldoInicial||0) + totalCreditado(); }
+function totalPendenteBruto(){ // pendente + atrasado (not yet credited/cancelled)
+  return state.items.filter(i=>{ const s=getStatus(i); return s==='pendente'||s==='atrasado'; }).reduce((a,i)=>a+Number(i.pontos||0),0);
+}
+function totalAtrasado(){ return state.items.filter(i=>getStatus(i)==='atrasado').reduce((a,i)=>a+Number(i.pontos||0),0); }
+function totalProximos(){ return state.items.filter(i=>getStatus(i)==='pendente').reduce((a,i)=>a+Number(i.pontos||0),0); }
+function proximoCredito(){
+  const pend = state.items.filter(i=>getStatus(i)==='pendente' && i.dataPrevista).sort((a,b)=> parseLocalDate(a.dataPrevista)-parseLocalDate(b.dataPrevista));
+  return pend.length ? pend[0] : null;
+}
+function pontosProximos7dias(){
+  const today = todayLocal();
+  const limite = addDays(today,7);
+  return state.items.filter(i=>{
+    const s = getStatus(i);
+    if(s!=='pendente') return false;
+    const d = parseLocalDate(i.dataPrevista);
+    return d && d>=today && d<=limite;
+  }).reduce((a,i)=>a+Number(i.pontos||0),0);
+}
+function acumuladoNoMes(offsetMonths){
+  const today = todayLocal();
+  const ref = addMonths(today, offsetMonths);
+  const key = ref.getFullYear()+'-'+pad2(ref.getMonth()+1);
+  return creditedItems().filter(i=> i.dataCredito && monthKey(i.dataCredito)===key).reduce((a,i)=>a+Number(i.pontos||0),0);
+}
+function mediaMensalCreditada(){
+  const credited = creditedItems().filter(i=>i.dataCredito);
+  if(!credited.length) return 0;
+  const dates = credited.map(i=>parseLocalDate(i.dataCredito));
+  const minD = new Date(Math.min(...dates));
+  const today = todayLocal();
+  let months = (today.getFullYear()-minD.getFullYear())*12 + (today.getMonth()-minD.getMonth()) + 1;
+  months = Math.max(1, months);
+  const total = credited.reduce((a,i)=>a+Number(i.pontos||0),0);
+  return total/months;
+}
+function representatividadeAssinatura(){
+  const media = mediaMensalCreditada();
+  const fixo = Number(state.config.pontosFixosMensais||0);
+  if(media<=0) return fixo>0 ? 100 : 0;
+  return Math.min(100, (fixo/ (media+fixo)) *100);
+}
+
+function metaPrincipal(){
+  return state.metas.find(m=>m.id===state.config.metaPrincipalId) || state.metas[0] || null;
+}
+function metaSaldoBase(meta){
+  if(!meta) return 0;
+  if(meta.saldoConsideradoTipo==='atual_pendente') return saldoAtual()+totalPendenteBruto();
+  if(meta.saldoConsideradoTipo==='personalizado') return Number(meta.valorPersonalizado||0);
+  return saldoAtual();
+}
+function computeMeta(meta){
+  const today = todayLocal();
+  const dataLimite = parseLocalDate(meta.dataLimite);
+  const saldoBase = metaSaldoBase(meta);
+  const faltam = Math.max(Number(meta.quantidade||0) - saldoBase, 0);
+  const meses = dataLimite ? monthsRemaining(today, dataLimite) : 0;
+  const necessarioPorMes = meses>0 ? faltam/meses : faltam;
+  const fixo = Number(state.config.pontosFixosMensais||0);
+  const pontosFixosPrevistos = fixo * meses;
+  const pontosAdicionaisNecessarios = Math.max(faltam - pontosFixosPrevistos, 0);
+  const mediaAdicionalNecessaria = meses>0 ? pontosAdicionaisNecessarios/meses : pontosAdicionaisNecessarios;
+  const progresso = Number(meta.quantidade||0) > 0 ? Math.min(100, (saldoBase/Number(meta.quantidade))*100) : 0;
+
+  // ritmo: real average (credited) + fixed monthly counted as guaranteed, compared to necessarioPorMes
+  const mediaReal = mediaMensalCreditada();
+  const ritmoAtualTotal = mediaReal; // real historical pace already includes any credited fixed-subscription entries
+  let ritmoStatus = 'amber';
+  const diff = ritmoAtualTotal - necessarioPorMes;
+  const ref = Math.max(necessarioPorMes, 1);
+  if(diff/ref > 0.05) ritmoStatus='green';
+  else if(diff/ref < -0.05) ritmoStatus='red';
+  else ritmoStatus='amber';
+
+  // previsão: at ritmo real + fixed guaranteed pace
+  const ritmoTotalComFixo = mediaReal>0 ? mediaReal : fixo;
+  let previsaoDate = null;
+  if(faltam<=0){ previsaoDate = today; }
+  else if(ritmoTotalComFixo>0){
+    const mesesNecessarios = faltam/ritmoTotalComFixo;
+    previsaoDate = addMonths(today, Math.ceil(mesesNecessarios));
+  }
+  const dentroDoPrazo = previsaoDate && dataLimite ? previsaoDate <= dataLimite : null;
+
+  return { saldoBase, faltam, meses, necessarioPorMes, fixo, pontosFixosPrevistos, pontosAdicionaisNecessarios,
+    mediaAdicionalNecessaria, progresso, mediaReal, ritmoStatus, previsaoDate, dentroDoPrazo };
+}
+
+/* =====================================================================================
+   TOAST
+   ===================================================================================== */
+function toast(msg, kind){
+  const root = document.getElementById('toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  const color = kind==='red' ? 'var(--red)' : kind==='green' ? 'var(--green)' : 'var(--primary-2)';
+  el.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;"></span><span>${escapeHTML(msg)}</span>`;
+  root.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(6px)'; el.style.transition='all .25s ease'; setTimeout(()=>el.remove(),260); }, 2800);
+}
+
+/* =====================================================================================
+   MODAL SYSTEM
+   ===================================================================================== */
+function openModal(innerHTML, opts){
+  opts = opts || {};
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'active-modal-overlay';
+  overlay.innerHTML = `<div class="modal ${opts.small?'small':''}">${innerHTML}</div>`;
+  document.getElementById('modal-root').appendChild(overlay);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); });
+  requestAnimationFrame(()=> overlay.classList.add('show'));
+  return overlay;
+}
+function closeModal(){
+  const ov = document.getElementById('active-modal-overlay');
+  if(ov){ ov.classList.remove('show'); setTimeout(()=>ov.remove(), 180); }
+}
+function confirmDialog(message, onConfirm){
+  const html = `
+    <div class="modal-head"><h3>Confirmar ação</h3><button class="modal-close" onclick="closeModal()">${ICONS.x}</button></div>
+    <p style="font-size:14px; color:var(--ink-soft); line-height:1.5;">${escapeHTML(message)}</p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-yes-btn">Confirmar</button>
+    </div>`;
+  openModal(html, {small:true});
+  document.getElementById('confirm-yes-btn').addEventListener('click', ()=>{ closeModal(); onConfirm(); });
+}
+
+/* =====================================================================================
+   NAVIGATION
+   ===================================================================================== */
+function switchView(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-backdrop').classList.add('hidden');
+  renderView(view);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function renderView(view){
+  if(view==='dashboard') renderDashboard();
+  else if(view==='pendentes') renderPendentes();
+  else if(view==='historico') renderHistorico();
+  else if(view==='metas') renderMetas();
+  else if(view==='simulador') renderSimulador();
+  else if(view==='calendario') renderCalendario();
+  else if(view==='config') renderConfig();
+}
+
+/* =====================================================================================
+   DASHBOARD
+   ===================================================================================== */
+let chartEvolucao=null, chartOrigem=null;
+
+function renderDashboard(){
+  const banner = document.getElementById('demo-banner-dash');
+  banner.innerHTML = state.config.isDemo ? `
+    <div class="demo-banner">
+      <span>Você está vendo dados de demonstração. Adicione suas próprias pontuações ou apague os dados de exemplo a qualquer momento.</span>
+      <button onclick="clearDemoData()">Apagar dados de demonstração</button>
+    </div>` : '';
+
+  const saldo = saldoAtual();
+  const pend = totalPendenteBruto();
+  const atrasado = totalAtrasado();
+  const proximos = totalProximos();
+  const prox = proximoCredito();
+  const meta = metaPrincipal();
+  const calc = meta ? computeMeta(meta) : null;
+
+  const cards = document.getElementById('dash-cards');
+  cards.innerHTML = `
+    <div class="card prim">
+      <div class="card-label"><span class="card-icon">${ICONS.check}</span>Pontos disponíveis</div>
+      <div class="card-value num">${formatNumber(saldo)} pts</div>
+      <div class="card-sub">Já creditados na sua conta</div>
+    </div>
+    <div class="card amber">
+      <div class="card-label"><span class="card-icon">${ICONS.clock}</span>Pontos pendentes</div>
+      <div class="card-value num">${formatNumber(pend)} pts</div>
+      <div class="card-sub">Ainda não creditados</div>
+    </div>
+    <div class="card ${atrasado>0?'warn':''}">
+      <div class="card-label"><span class="card-icon" style="background:${atrasado>0?'var(--red)':'var(--gray-soft)'}; color:${atrasado>0?'#fff':'var(--gray)'}">${ICONS.warn}</span>Pontos em atraso</div>
+      <div class="card-value num" style="color:${atrasado>0?'var(--red)':'inherit'}">${formatNumber(atrasado)} pts</div>
+      <div class="card-sub">${atrasado>0?'Prazo já vencido — confira sua conta':'Nenhum ponto atrasado'}</div>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="card-icon" style="background:var(--amber-soft); color:var(--amber)">${ICONS.calendar}</span>Próximos pontos</div>
+      <div class="card-value num">${formatNumber(proximos)} pts</div>
+      <div class="card-sub">${prox ? 'Próximo crédito: '+formatDateBR(prox.dataPrevista) : 'Nenhum crédito previsto'}</div>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="card-icon" style="background:var(--primary-soft); color:var(--primary)">${ICONS.target}</span>Meta${meta?': '+escapeHTML(meta.nome):''}</div>
+      <div class="card-value num">${meta ? formatNumber(calc.saldoBase)+' / '+formatNumber(meta.quantidade)+' pts' : 'Nenhuma meta criada'}</div>
+      ${meta ? `<div class="progress-bar"><span style="width:${calc.progresso}%"></span></div><div class="card-sub">${calc.progresso.toFixed(1)}% concluído</div>` : `<div class="card-sub">Crie uma meta na aba Metas</div>`}
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="card-icon" style="background:var(--green-soft); color:var(--green)">${ICONS.calc}</span>Média mensal necessária</div>
+      <div class="card-value num">${meta ? formatNumber(calc.necessarioPorMes)+' pts/mês' : '—'}</div>
+      <div class="card-sub">Necessário para atingir sua meta</div>
+    </div>
+  `;
+
+  // Alerts
+  const alerts = [];
+  if(atrasado>0){
+    alerts.push({kind:'red', title:`Você possui ${formatNumber(atrasado)} pontos atrasados.`, sub:'A data prevista de crédito já passou. Confira sua conta Livelo.'});
+  }
+  const prox7 = pontosProximos7dias();
+  if(prox7>0){
+    alerts.push({kind:'amber', title:`Você possui ${formatNumber(prox7)} pontos com previsão de crédito nos próximos 7 dias.`});
+  }
+  if(meta){
+    if(calc.ritmoStatus==='green') alerts.push({kind:'green', title:'Você está no ritmo necessário para atingir sua meta.'});
+    else if(calc.ritmoStatus==='red') alerts.push({kind:'red', title:'Com o ritmo atual, você não atingirá sua meta na data planejada.'});
+    else alerts.push({kind:'amber', title:'Seu ritmo está próximo do necessário para atingir a meta.'});
+  }
+  const alertsBox = document.getElementById('dash-alerts');
+  alertsBox.innerHTML = alerts.length ? alerts.map(a=>`
+    <div class="alert ${a.kind}">${ICONS.warn}<div>${escapeHTML(a.title)}${a.sub?'<span class="sub">'+escapeHTML(a.sub)+'</span>':''}</div></div>
+  `).join('') : `<div class="empty-state" style="padding:20px;"><p>Nenhum alerta no momento. Tudo em ordem!</p></div>`;
+
+  // Ritmo box
+  const ritmoBox = document.getElementById('dash-ritmo');
+  if(meta){
+    const badgeClass = calc.ritmoStatus;
+    const badgeText = calc.ritmoStatus==='green' ? 'Acima do ritmo necessário' : calc.ritmoStatus==='red' ? 'Abaixo do ritmo necessário' : 'Próximo do necessário';
+    ritmoBox.innerHTML = `
+      <div class="ritmo-badge ${badgeClass}">${ICONS.target} ${badgeText}</div>
+      <div class="kpi-row" style="margin-top:16px;">
+        <div class="kpi"><div class="lbl">Necessário / mês</div><div class="val num">${formatNumber(calc.necessarioPorMes)}</div></div>
+        <div class="kpi"><div class="lbl">Sua média / mês</div><div class="val num">${formatNumber(calc.mediaReal)}</div></div>
+      </div>
+      <p style="font-size:13px; color:var(--ink-soft); margin-top:14px; line-height:1.5;">
+        ${calc.previsaoDate ? `Mantendo seu ritmo atual, você atingirá sua meta em <strong style="color:var(--ink)">${formatDateBR(toISO(calc.previsaoDate))}</strong>.` : 'Ainda não há histórico suficiente para prever a data.'}
+        ${calc.dentroDoPrazo===true ? ' <span style="color:var(--green); font-weight:700;">Você deve atingir a meta antes do prazo.</span>' : ''}
+        ${calc.dentroDoPrazo===false ? ' <span style="color:var(--red); font-weight:700;">No ritmo atual, você atingirá a meta após o prazo.</span>' : ''}
+      </p>`;
+  } else {
+    ritmoBox.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>Crie uma meta para visualizar seu ritmo de acúmulo.</p></div>`;
+  }
+
+  // KPIs
+  const kpiBox = document.getElementById('dash-kpis');
+  kpiBox.innerHTML = `
+    <div class="kpi"><div class="lbl">Acumulado este mês</div><div class="val num">${formatNumber(acumuladoNoMes(0))}</div></div>
+    <div class="kpi"><div class="lbl">Acumulado mês passado</div><div class="val num">${formatNumber(acumuladoNoMes(-1))}</div></div>
+    <div class="kpi"><div class="lbl">Média mensal (creditados)</div><div class="val num">${formatNumber(mediaMensalCreditada())}</div></div>
+    <div class="kpi"><div class="lbl">Assinatura no acúmulo</div><div class="val num">${representatividadeAssinatura().toFixed(0)}%</div></div>
+    <div class="kpi"><div class="lbl">Total já creditado</div><div class="val num">${formatNumber(totalCreditado())}</div></div>
+    <div class="kpi"><div class="lbl">Pontos fixos / mês</div><div class="val num">${formatNumber(state.config.pontosFixosMensais)}</div></div>
+  `;
+
+  renderChartsDashboard();
+}
+
+function renderChartsDashboard(){
+  const cssVar = (name)=> getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  // Evolução
+  const credited = creditedItems().filter(i=>i.dataCredito).sort((a,b)=>parseLocalDate(a.dataCredito)-parseLocalDate(b.dataCredito));
+  let labels = [], values = [];
+  let running = Number(state.config.saldoInicial||0);
+  labels.push('Início'); values.push(running);
+  credited.forEach(i=>{ running += Number(i.pontos||0); labels.push(formatDateBR(i.dataCredito)); values.push(running); });
+  if(credited.length===0){ labels.push('Hoje'); values.push(running); }
+
+  const ctx1 = document.getElementById('chart-evolucao').getContext('2d');
+  if(chartEvolucao) chartEvolucao.destroy();
+  chartEvolucao = new Chart(ctx1, {
+    type:'line',
+    data:{ labels, datasets:[{ data: values, borderColor: cssVar('--primary'), backgroundColor: 'rgba(79,61,245,.12)', fill:true, tension:.35, pointRadius:3, pointBackgroundColor: cssVar('--primary') }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ ticks:{ callback:(v)=>formatNumber(v), color:cssVar('--ink-soft') }, grid:{color:cssVar('--border-soft')} }, x:{ ticks:{color:cssVar('--ink-soft')}, grid:{display:false} } } }
+  });
+
+  // Origem
+  const byTipo = {};
+  TIPOS.forEach(t=>byTipo[t]=0);
+  state.items.forEach(i=>{ byTipo[i.tipo] = (byTipo[i.tipo]||0) + Number(i.pontos||0); });
+  const tiposComDados = TIPOS.filter(t=>byTipo[t]>0);
+  const palette = [cssVar('--primary'), cssVar('--primary-2'), cssVar('--amber'), cssVar('--green'), cssVar('--red'), cssVar('--gray')];
+  const ctx2 = document.getElementById('chart-origem').getContext('2d');
+  if(chartOrigem) chartOrigem.destroy();
+  chartOrigem = new Chart(ctx2, {
+    type:'doughnut',
+    data:{ labels: tiposComDados.length?tiposComDados:['Sem dados'], datasets:[{ data: tiposComDados.length?tiposComDados.map(t=>byTipo[t]):[1], backgroundColor: tiposComDados.length?palette:[cssVar('--gray-soft')], borderWidth:0 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{ position:'bottom', labels:{ color:cssVar('--ink-soft'), boxWidth:10, font:{size:11} } } } }
+  });
+}
+
+function clearDemoData(){
+  confirmDialog('Isso vai apagar todos os dados de demonstração (pendências e metas de exemplo) e zerar seu saldo inicial. Deseja continuar?', ()=>{
+    state = { config:{ saldoInicial:0, pontosFixosMensais:0, diaRecebimento:1, metaPrincipalId:null, isDemo:false, theme: state.config.theme }, items:[], metas:[] };
+    saveState();
+    renderView(currentView());
+    toast('Dados de demonstração removidos.', 'green');
+  });
+}
+
+/* =====================================================================================
+   PENDÊNCIAS
+   ===================================================================================== */
+let pendSort = {key:'dataPrevista', dir:1};
+
+function renderPendentes(){
+  const search = (document.getElementById('pend-search').value||'').toLowerCase();
+  const fStatus = document.getElementById('pend-filter-status').value;
+  const fTipo = document.getElementById('pend-filter-tipo').value;
+
+  let rows = state.items.filter(i=>{
+    const s = getStatus(i);
+    if(s==='creditado') return false; // credited go to history
+    if(fStatus!=='todos' && s!==fStatus) return false;
+    if(fTipo!=='todos' && i.tipo!==fTipo) return false;
+    if(search && !(i.descricao.toLowerCase().includes(search) || i.parceiro.toLowerCase().includes(search))) return false;
+    return true;
+  });
+
+  rows.sort((a,b)=>{
+    let av=a[pendSort.key], bv=b[pendSort.key];
+    if(pendSort.key==='pontos'){ av=Number(av); bv=Number(bv); }
+    if(av<bv) return -1*pendSort.dir; if(av>bv) return 1*pendSort.dir; return 0;
+  });
+
+  const tbody = document.getElementById('tbl-pendencias-body');
+  if(!rows.length){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">${ICONS.empty}<br>Nenhuma pontuação pendente encontrada.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(i=>{
+      const s = getStatus(i);
+      return `<tr>
+        <td>${escapeHTML(i.descricao)}</td>
+        <td>${escapeHTML(i.parceiro)}</td>
+        <td>${escapeHTML(i.tipo)}</td>
+        <td class="num">${formatNumber(i.pontos)}</td>
+        <td>${formatDateBR(i.dataCompra)}</td>
+        <td>${formatDateBR(i.dataPrevista)}</td>
+        <td><span class="badge ${s}"><span class="dot"></span>${statusLabel(s)}</span></td>
+        <td>
+          <div class="row-actions">
+            ${s!=='cancelado' ? `<button class="btn btn-soft btn-icon" title="Marcar como creditado" onclick="markCredited('${i.id}')">${ICONS.check}</button>` : ''}
+            <button class="btn btn-ghost btn-icon" title="Duplicar" onclick="duplicateItem('${i.id}')">${ICONS.copy}</button>
+            <button class="btn btn-ghost btn-icon" title="Editar" onclick="openPendenciaModal('${i.id}')">${ICONS.edit}</button>
+            ${s!=='cancelado' ? `<button class="btn btn-ghost btn-icon" title="Cancelar" onclick="cancelItem('${i.id}')">${ICONS.x}</button>` : ''}
+            <button class="btn btn-danger btn-icon" title="Excluir" onclick="deleteItem('${i.id}')">${ICONS.trash}</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function markCredited(id){
+  const item = state.items.find(i=>i.id===id);
+  if(!item) return;
+  item.status = 'creditado';
+  item.dataCredito = toISO(todayLocal());
+  saveState();
+  renderView(currentView());
+  renderDashboard();
+  toast(`${formatNumber(item.pontos)} pontos creditados com sucesso!`, 'green');
+}
+function cancelItem(id){
+  confirmDialog('Deseja marcar esta pontuação como cancelada? Ela deixará de contar como pendente ou atrasada.', ()=>{
+    const item = state.items.find(i=>i.id===id);
+    if(!item) return;
+    item.status = 'cancelado';
+    saveState(); renderView(currentView());
+    toast('Pontuação marcada como cancelada.', 'green');
+  });
+}
+function deleteItem(id){
+  confirmDialog('Tem certeza que deseja excluir este registro? Essa ação não pode ser desfeita.', ()=>{
+    state.items = state.items.filter(i=>i.id!==id);
+    saveState(); renderView(currentView());
+    toast('Registro excluído.', 'green');
+  });
+}
+function duplicateItem(id){
+  const item = state.items.find(i=>i.id===id);
+  if(!item) return;
+  const copy = Object.assign({}, item, { id: uid(), status:null, dataCredito:null, createdAt: Date.now() });
+  state.items.push(copy);
+  saveState(); renderView(currentView());
+  toast('Registro duplicado.', 'green');
+}
+
+/* --- Modal: add/edit pendência --- */
+function openPendenciaModal(id){
+  const editing = id ? state.items.find(i=>i.id===id) : null;
+  const isCustomPrazo = editing && editing.prazoTipo==='personalizado';
+  const html = `
+    <div class="modal-head"><h3>${editing?'Editar':'Adicionar'} pontuação pendente</h3><button class="modal-close" onclick="closeModal()">${ICONS.x}</button></div>
+    <div class="form-grid">
+      <div class="field full"><label>Descrição</label><input type="text" id="f-descricao" placeholder="Ex: Compra Nike" value="${editing?escapeHTML(editing.descricao):''}"></div>
+      <div class="field"><label>Parceiro</label><input type="text" id="f-parceiro" placeholder="Ex: Nike" value="${editing?escapeHTML(editing.parceiro):''}"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="f-tipo">${TIPOS.map(t=>`<option value="${t}" ${editing&&editing.tipo===t?'selected':''}>${t}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Data da compra</label><input type="date" id="f-data-compra" value="${editing?editing.dataCompra:toISO(todayLocal())}"></div>
+      <div class="field"><label>Quantidade de pontos esperados</label><input type="text" inputmode="numeric" id="f-pontos" placeholder="Ex: 2500" value="${editing?editing.pontos:''}"></div>
+      <div class="field"><label>Data de referência para o prazo</label><input type="date" id="f-data-ref" value="${editing?editing.dataReferencia:toISO(todayLocal())}">
+        <span class="help">Data da entrega, da viagem ou da compra</span>
+      </div>
+      <div class="field full"><label>Prazo para crédito</label>
+        <div class="radio-group" id="f-prazo-group">
+          ${PRAZOS.map(p=>`<button type="button" class="radio-chip ${editing?(editing.prazoTipo===p.v?'active':''):(p.v==='45'?'active':'')}" data-v="${p.v}">${p.label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="field full ${isCustomPrazo?'':'hidden'}" id="f-data-prevista-wrap"><label>Data prevista de crédito</label><input type="date" id="f-data-prevista" value="${editing&&editing.dataPrevista?editing.dataPrevista:''}"></div>
+      <div class="field full" id="f-data-prevista-calc-wrap"><label>Data prevista calculada</label><input type="text" id="f-data-prevista-calc" disabled value=""></div>
+      <div class="field full"><label>Observações (opcional)</label><textarea id="f-obs" placeholder="Ex: Prazo informado pelo parceiro: até 45 dias após a entrega.">${editing?escapeHTML(editing.observacoes||''):''}</textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="save-pendencia-btn">${editing?'Salvar alterações':'Adicionar'}</button>
+    </div>`;
+  openModal(html);
+
+  let selectedPrazo = editing ? editing.prazoTipo : '45';
+  const group = document.getElementById('f-prazo-group');
+  const prevWrap = document.getElementById('f-data-prevista-wrap');
+  const calcWrap = document.getElementById('f-data-prevista-calc-wrap');
+  const calcInput = document.getElementById('f-data-prevista-calc');
+  const refInput = document.getElementById('f-data-ref');
+  const prevInput = document.getElementById('f-data-prevista');
+
+  function updateCalc(){
+    if(selectedPrazo==='personalizado'){
+      prevWrap.classList.remove('hidden');
+      calcWrap.classList.add('hidden');
+    } else {
+      prevWrap.classList.add('hidden');
+      calcWrap.classList.remove('hidden');
+      const dias = PRAZOS.find(p=>p.v===selectedPrazo).dias;
+      const ref = parseLocalDate(refInput.value) || todayLocal();
+      const prevista = addDays(ref, dias);
+      calcInput.value = formatDateBR(toISO(prevista)) + ' (referência + ' + dias + ' dias)';
+    }
+  }
+  group.querySelectorAll('.radio-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      group.querySelectorAll('.radio-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedPrazo = chip.dataset.v;
+      updateCalc();
+    });
+  });
+  refInput.addEventListener('change', updateCalc);
+  updateCalc();
+
+  document.getElementById('save-pendencia-btn').addEventListener('click', ()=>{
+    const descricao = document.getElementById('f-descricao').value.trim();
+    const parceiro = document.getElementById('f-parceiro').value.trim();
+    const tipo = document.getElementById('f-tipo').value;
+    const dataCompra = document.getElementById('f-data-compra').value;
+    const pontos = parseNumberInput(document.getElementById('f-pontos').value);
+    const dataReferencia = refInput.value;
+    const obs = document.getElementById('f-obs').value.trim();
+
+    if(!descricao){ toast('Informe uma descrição.', 'red'); return; }
+    if(!pontos || pontos<=0){ toast('Informe uma quantidade de pontos válida.', 'red'); return; }
+    if(!dataReferencia){ toast('Informe a data de referência.', 'red'); return; }
+
+    let dataPrevista;
+    if(selectedPrazo==='personalizado'){
+      dataPrevista = prevInput.value;
+      if(!dataPrevista){ toast('Informe a data prevista de crédito.', 'red'); return; }
+    } else {
+      const dias = PRAZOS.find(p=>p.v===selectedPrazo).dias;
+      dataPrevista = toISO(addDays(parseLocalDate(dataReferencia), dias));
+    }
+
+    if(editing){
+      Object.assign(editing, { descricao, parceiro, tipo, dataCompra, pontos, dataReferencia, prazoTipo:selectedPrazo, dataPrevista, observacoes:obs });
+      toast('Pontuação atualizada.', 'green');
+    } else {
+      state.items.push({ id:uid(), descricao, parceiro, tipo, dataCompra, pontos, dataReferencia, prazoTipo:selectedPrazo, dataPrevista, observacoes:obs, status:null, dataCredito:null, createdAt: Date.now() });
+      toast('Pontuação pendente adicionada.', 'green');
+    }
+    saveState();
+    closeModal();
+    renderView(currentView());
+    renderDashboard();
+  });
+}
+
+/* =====================================================================================
+   HISTÓRICO
+   ===================================================================================== */
+let histSort = {key:'dataCredito', dir:-1};
+
+function renderHistorico(){
+  const search = (document.getElementById('hist-search').value||'').toLowerCase();
+  const fStatus = document.getElementById('hist-filter-status').value;
+  const fTipo = document.getElementById('hist-filter-tipo').value;
+
+  let rows = state.items.filter(i=>{
+    const s = getStatus(i);
+    if(s!=='creditado' && s!=='cancelado') return false;
+    if(fStatus!=='todos' && s!==fStatus) return false;
+    if(fTipo!=='todos' && i.tipo!==fTipo) return false;
+    if(search && !(i.descricao.toLowerCase().includes(search) || i.parceiro.toLowerCase().includes(search))) return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    let av=a[histSort.key]||'', bv=b[histSort.key]||'';
+    if(histSort.key==='pontos'){ av=Number(av); bv=Number(bv); }
+    if(av<bv) return -1*histSort.dir; if(av>bv) return 1*histSort.dir; return 0;
+  });
+
+  const tbody = document.getElementById('tbl-historico-body');
+  if(!rows.length){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">${ICONS.empty}<br>Nenhum registro no histórico ainda.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(i=>{
+      const s = getStatus(i);
+      return `<tr>
+        <td>${escapeHTML(i.descricao)}</td>
+        <td>${escapeHTML(i.parceiro)}</td>
+        <td>${escapeHTML(i.tipo)}</td>
+        <td class="num">${formatNumber(i.pontos)}</td>
+        <td>${formatDateBR(i.dataCompra)}</td>
+        <td>${formatDateBR(i.dataPrevista)}</td>
+        <td>${i.dataCredito?formatDateBR(i.dataCredito):'—'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn btn-ghost btn-icon" title="Editar" onclick="openPendenciaModal('${i.id}')">${ICONS.edit}</button>
+            <button class="btn btn-danger btn-icon" title="Excluir" onclick="deleteItem('${i.id}')">${ICONS.trash}</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+/* =====================================================================================
+   METAS
+   ===================================================================================== */
+function renderMetas(){
+  const box = document.getElementById('metas-list');
+  if(!state.metas.length){
+    box.innerHTML = `<div class="section"><div class="empty-state">${ICONS.empty}<h4>Nenhuma meta criada</h4><p>Crie sua primeira meta para começar a planejar seus pontos.</p></div></div>`;
+    return;
+  }
+  box.innerHTML = state.metas.map(meta=>{
+    const calc = computeMeta(meta);
+    const isPrincipal = state.config.metaPrincipalId===meta.id;
+    return `<div class="meta-card">
+      <div class="meta-card-head">
+        <h4>${escapeHTML(meta.nome)} ${isPrincipal?'<span class="meta-tag principal">Principal</span>':''}</h4>
+        <div class="row-actions">
+          ${!isPrincipal?`<button class="btn btn-ghost btn-sm" onclick="setMetaPrincipal('${meta.id}')">Definir como principal</button>`:''}
+          <button class="btn btn-ghost btn-icon" onclick="openMetaModal('${meta.id}')">${ICONS.edit}</button>
+          <button class="btn btn-danger btn-icon" onclick="deleteMeta('${meta.id}')">${ICONS.trash}</button>
+        </div>
+      </div>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin-top:4px;">Prazo: ${formatDateBR(meta.dataLimite)} · ${calc.meses} meses restantes</p>
+      <div class="progress-bar"><span style="width:${calc.progresso}%"></span></div>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin-top:6px;">${formatNumber(calc.saldoBase)} / ${formatNumber(meta.quantidade)} pts (${calc.progresso.toFixed(1)}%)</p>
+      <div class="kpi-row" style="margin-top:14px;">
+        <div class="kpi"><div class="lbl">Faltam</div><div class="val num">${formatNumber(calc.faltam)}</div></div>
+        <div class="kpi"><div class="lbl">Necessário / mês</div><div class="val num">${formatNumber(calc.necessarioPorMes)}</div></div>
+        <div class="kpi"><div class="lbl">Garantido pela assinatura</div><div class="val num">${formatNumber(calc.pontosFixosPrevistos)}</div></div>
+        <div class="kpi"><div class="lbl">Adicional necessário / mês</div><div class="val num">${formatNumber(calc.mediaAdicionalNecessaria)}</div></div>
+      </div>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin-top:10px;">Você precisa gerar aproximadamente <strong style="color:var(--ink)">${formatNumber(calc.mediaAdicionalNecessaria)} pontos adicionais por mês</strong>, além dos ${formatNumber(calc.fixo)} pts/mês garantidos pela assinatura.</p>
+      ${isPrincipal ? renderCenariosParaMeta(meta) : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderCenariosParaMeta(meta){
+  const today = todayLocal();
+  const calc = computeMeta(meta);
+  const cenarios = [
+    {nome:'Conservador', extra:1000},
+    {nome:'Realista', extra:3000},
+    {nome:'Agressivo', extra:5000}
+  ];
+  const fixo = Number(state.config.pontosFixosMensais||0);
+  const rows = cenarios.map(c=>{
+    const ritmoMensal = fixo + c.extra;
+    let atingida = '—';
+    if(calc.faltam<=0){ atingida = 'Já atingida'; }
+    else if(ritmoMensal>0){
+      const meses = Math.ceil(calc.faltam/ritmoMensal);
+      const d = addMonths(today, meses);
+      atingida = MESES_ABREV[d.getMonth()]+'/'+d.getFullYear();
+    }
+    return `<tr><td>${c.nome}</td><td class="num">${formatNumber(c.extra)}</td><td class="date">${atingida}</td></tr>`;
+  }).join('');
+  return `
+    <div style="margin-top:18px; border-top:1px solid var(--border-soft); padding-top:16px;">
+      <p style="font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:10px;">SIMULAÇÕES DE CENÁRIO PARA ESTA META</p>
+      <div class="table-wrap"><table class="scenario-table"><thead><tr><th>Cenário</th><th class="num">Pontos/mês adicionais</th><th>Meta atingida</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+
+function setMetaPrincipal(id){
+  state.config.metaPrincipalId = id;
+  saveState(); renderMetas(); renderDashboard();
+  toast('Meta principal atualizada.', 'green');
+}
+function deleteMeta(id){
+  confirmDialog('Tem certeza que deseja excluir esta meta?', ()=>{
+    state.metas = state.metas.filter(m=>m.id!==id);
+    if(state.config.metaPrincipalId===id) state.config.metaPrincipalId = state.metas[0]?state.metas[0].id:null;
+    saveState(); renderView(currentView());
+    toast('Meta excluída.', 'green');
+  });
+}
+
+function openMetaModal(id){
+  const editing = id ? state.metas.find(m=>m.id===id) : null;
+  const html = `
+    <div class="modal-head"><h3>${editing?'Editar meta':'Criar nova meta'}</h3><button class="modal-close" onclick="closeModal()">${ICONS.x}</button></div>
+    <div class="form-grid">
+      <div class="field full"><label>Nome da meta</label><input type="text" id="m-nome" placeholder="Ex: Viagem para Europa" value="${editing?escapeHTML(editing.nome):''}"></div>
+      <div class="field"><label>Quantidade desejada</label><input type="text" inputmode="numeric" id="m-quantidade" placeholder="Ex: 100000" value="${editing?editing.quantidade:''}"></div>
+      <div class="field"><label>Data limite</label><input type="date" id="m-data" value="${editing?editing.dataLimite:toISO(addMonths(todayLocal(),12))}"></div>
+      <div class="field full"><label>Saldo considerado</label>
+        <select id="m-saldo-tipo">
+          <option value="atual" ${editing&&editing.saldoConsideradoTipo==='atual'?'selected':''}>Saldo atual</option>
+          <option value="atual_pendente" ${editing&&editing.saldoConsideradoTipo==='atual_pendente'?'selected':''}>Saldo atual + pontos pendentes</option>
+          <option value="personalizado" ${editing&&editing.saldoConsideradoTipo==='personalizado'?'selected':''}>Valor personalizado</option>
+        </select>
+      </div>
+      <div class="field full ${editing&&editing.saldoConsideradoTipo==='personalizado'?'':'hidden'}" id="m-personalizado-wrap">
+        <label>Valor personalizado</label><input type="text" inputmode="numeric" id="m-personalizado" value="${editing?editing.valorPersonalizado||0:0}">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="save-meta-btn">${editing?'Salvar alterações':'Criar meta'}</button>
+    </div>`;
+  openModal(html);
+  const selTipo = document.getElementById('m-saldo-tipo');
+  const persWrap = document.getElementById('m-personalizado-wrap');
+  selTipo.addEventListener('change', ()=> persWrap.classList.toggle('hidden', selTipo.value!=='personalizado'));
+
+  document.getElementById('save-meta-btn').addEventListener('click', ()=>{
+    const nome = document.getElementById('m-nome').value.trim();
+    const quantidade = parseNumberInput(document.getElementById('m-quantidade').value);
+    const dataLimite = document.getElementById('m-data').value;
+    const saldoConsideradoTipo = selTipo.value;
+    const valorPersonalizado = parseNumberInput(document.getElementById('m-personalizado').value);
+
+    if(!nome){ toast('Informe um nome para a meta.', 'red'); return; }
+    if(!quantidade || quantidade<=0){ toast('Informe uma quantidade válida.', 'red'); return; }
+    if(!dataLimite){ toast('Informe a data limite.', 'red'); return; }
+
+    if(editing){
+      Object.assign(editing, { nome, quantidade, dataLimite, saldoConsideradoTipo, valorPersonalizado });
+      toast('Meta atualizada.', 'green');
+    } else {
+      const novaMeta = { id:uid(), nome, quantidade, dataLimite, saldoConsideradoTipo, valorPersonalizado, createdAt: Date.now() };
+      state.metas.push(novaMeta);
+      if(!state.config.metaPrincipalId) state.config.metaPrincipalId = novaMeta.id;
+      toast('Meta criada com sucesso.', 'green');
+    }
+    saveState(); closeModal(); renderView(currentView()); renderDashboard();
+  });
+}
+
+/* =====================================================================================
+   SIMULADOR
+   ===================================================================================== */
+function renderSimulador(){
+  const atualEl = document.getElementById('sim-atual');
+  const metaEl = document.getElementById('sim-meta');
+  const dataEl = document.getElementById('sim-data');
+  const fixosEl = document.getElementById('sim-fixos');
+
+  if(!dataEl.value){
+    atualEl.value = saldoAtual();
+    metaEl.value = metaPrincipal() ? metaPrincipal().quantidade : Math.max(saldoAtual()*2, 10000);
+    dataEl.value = metaPrincipal() ? metaPrincipal().dataLimite : toISO(addMonths(todayLocal(),12));
+    fixosEl.value = state.config.pontosFixosMensais || 0;
+  }
+  computeSimulador();
+  [atualEl, metaEl, dataEl, fixosEl].forEach(el=>{
+    el.oninput = computeSimulador;
+  });
+}
+function computeSimulador(){
+  const atual = parseNumberInput(document.getElementById('sim-atual').value);
+  const metaQ = parseNumberInput(document.getElementById('sim-meta').value);
+  const dataStr = document.getElementById('sim-data').value;
+  const fixos = parseNumberInput(document.getElementById('sim-fixos').value);
+  const resultBox = document.getElementById('sim-result');
+
+  const today = todayLocal();
+  const dataLimite = parseLocalDate(dataStr);
+  if(!dataLimite || metaQ<=0){
+    resultBox.innerHTML = `<div class="empty-state" style="padding:20px 0;"><p>Preencha os campos para ver o resultado da simulação.</p></div>`;
+    return;
+  }
+  const faltam = Math.max(metaQ - atual, 0);
+  const meses = monthsRemaining(today, dataLimite);
+  const porMes = meses>0 ? faltam/meses : faltam;
+  const fixoPrevisto = fixos*meses;
+  const adicionalNecessario = Math.max(faltam - fixoPrevisto, 0);
+  const adicionalPorMes = meses>0 ? adicionalNecessario/meses : adicionalNecessario;
+  const porSemana = porMes/4.345;
+  const porDia = porMes/30.44;
+
+  resultBox.innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="lbl">Faltam</div><div class="val num">${formatNumber(faltam)} pts</div></div>
+      <div class="kpi"><div class="lbl">Meses restantes</div><div class="val num">${meses}</div></div>
+      <div class="kpi"><div class="lbl">Total por mês</div><div class="val num">${formatNumber(porMes)} pts</div></div>
+    </div>
+    <div style="margin:18px 0; padding:16px; background:var(--primary-soft); border-radius:12px;">
+      <p style="font-size:13.5px; color:var(--primary); font-weight:700;">Dos ${formatNumber(porMes)} pts/mês necessários:</p>
+      <p style="font-size:13px; color:var(--ink-soft); margin-top:6px;">${formatNumber(Math.min(fixos, porMes))} pts são garantidos pela assinatura</p>
+      <p style="font-size:13px; color:var(--ink-soft); margin-top:2px;">${formatNumber(adicionalPorMes)} pts precisam vir de compras, promoções, viagens etc.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="lbl">Por semana</div><div class="val num">${formatNumber(porSemana)} pts</div></div>
+      <div class="kpi"><div class="lbl">Por dia</div><div class="val num">${formatNumber(porDia)} pts</div></div>
+    </div>
+    <p style="font-size:11.5px; color:var(--ink-soft); margin-top:10px;">Valores de referência matemática, calculados a partir dos dados informados acima.</p>
+  `;
+}
+
+/* =====================================================================================
+   CALENDÁRIO
+   ===================================================================================== */
+let calRefDate = todayLocal();
+
+function buildCalendarEvents(){
+  const events = {}; // key: iso date -> [{label, kind, item}]
+  function push(iso, label, kind, item){
+    if(!events[iso]) events[iso]=[];
+    events[iso].push({label, kind, item});
+  }
+  state.items.forEach(i=>{
+    const s = getStatus(i);
+    if(s==='pendente' || s==='atrasado'){
+      push(i.dataPrevista, `+${formatNumber(i.pontos)} ${i.descricao}`, s, i);
+    } else if(s==='creditado' && i.dataCredito){
+      push(i.dataCredito, `+${formatNumber(i.pontos)} ${i.descricao}`, 'creditado', i);
+    }
+  });
+  // fixed monthly points: show on diaRecebimento for a window of -3..+12 months from today
+  const dia = Math.min(Math.max(parseInt(state.config.diaRecebimento)||1,1),28);
+  if(Number(state.config.pontosFixosMensais)>0){
+    for(let off=-3; off<=12; off++){
+      const d = addMonths(todayLocal(), off);
+      const iso = d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(dia);
+      push(iso, `+${formatNumber(state.config.pontosFixosMensais)} Assinatura Livelo`, 'fixo', null);
+    }
+  }
+  return events;
+}
+
+function renderCalendario(){
+  const events = buildCalendarEvents();
+  const y = calRefDate.getFullYear(), m = calRefDate.getMonth();
+  document.getElementById('cal-title').textContent = MESES_NOMES[m] + ' de ' + y;
+
+  const dowBox = document.getElementById('cal-dow');
+  dowBox.innerHTML = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  const firstOfMonth = new Date(y,m,1);
+  const startWeekday = firstOfMonth.getDay();
+  const gridStart = addDays(firstOfMonth, -startWeekday);
+  const today = todayLocal();
+
+  let cells = '';
+  for(let i=0;i<42;i++){
+    const d = addDays(gridStart, i);
+    const iso = toISO(d);
+    const inMonth = d.getMonth()===m;
+    const isToday = toISO(d)===toISO(today);
+    const dayEvents = events[iso] || [];
+    cells += `<div class="cal-cell ${inMonth?'':'out'} ${isToday?'today':''}">
+      <div class="cal-daynum">${d.getDate()}</div>
+      ${dayEvents.slice(0,3).map(ev=>`<div class="cal-event ${ev.kind}" title="${escapeHTML(ev.label)}" onclick="showEventDetail('${escapeHTML(ev.label)}','${ev.kind}')">${escapeHTML(ev.label)}</div>`).join('')}
+      ${dayEvents.length>3?`<div style="font-size:10px; color:var(--ink-soft); font-weight:700;">+${dayEvents.length-3} mais</div>`:''}
+    </div>`;
+    if(i===41) break;
+  }
+  document.getElementById('cal-grid').innerHTML = cells;
+}
+function showEventDetail(label, kind){
+  const kindLabel = {fixo:'Pontos fixos da assinatura', pendente:'Pontos pendentes', atrasado:'Pontos atrasados', creditado:'Pontos já creditados'}[kind]||'';
+  openModal(`
+    <div class="modal-head"><h3>Detalhe do evento</h3><button class="modal-close" onclick="closeModal()">${ICONS.x}</button></div>
+    <p style="font-size:14px; font-weight:700;">${escapeHTML(label)}</p>
+    <p style="font-size:12.5px; color:var(--ink-soft); margin-top:6px;">${kindLabel}</p>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button></div>
+  `, {small:true});
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('cal-prev').addEventListener('click', ()=>{ calRefDate = addMonths(calRefDate,-1); renderCalendario(); });
+  document.getElementById('cal-next').addEventListener('click', ()=>{ calRefDate = addMonths(calRefDate,1); renderCalendario(); });
+  document.getElementById('cal-today').addEventListener('click', ()=>{ calRefDate = todayLocal(); renderCalendario(); });
+});
+
+/* =====================================================================================
+   CONFIGURAÇÕES
+   ===================================================================================== */
+function renderConfig(){
+  document.getElementById('cfg-saldo-inicial').value = state.config.saldoInicial;
+  document.getElementById('cfg-fixos').value = state.config.pontosFixosMensais;
+  document.getElementById('cfg-dia').value = state.config.diaRecebimento;
+  const sel = document.getElementById('cfg-meta-principal');
+  sel.innerHTML = `<option value="">Nenhuma</option>` + state.metas.map(m=>`<option value="${m.id}" ${state.config.metaPrincipalId===m.id?'selected':''}>${escapeHTML(m.nome)}</option>`).join('');
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('btn-save-config').addEventListener('click', ()=>{
+    state.config.saldoInicial = parseNumberInput(document.getElementById('cfg-saldo-inicial').value);
+    state.config.pontosFixosMensais = parseNumberInput(document.getElementById('cfg-fixos').value);
+    state.config.diaRecebimento = Math.min(Math.max(parseInt(document.getElementById('cfg-dia').value)||1,1),31);
+    state.config.metaPrincipalId = document.getElementById('cfg-meta-principal').value || null;
+    saveState();
+    toast('Configurações salvas.', 'green');
+    renderDashboard();
+  });
+  document.getElementById('btn-export').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `pontos-livelo-backup-${toISO(todayLocal())}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('Backup exportado com sucesso.', 'green');
+  });
+  document.getElementById('btn-import-trigger').addEventListener('click', ()=> document.getElementById('btn-import').click());
+  document.getElementById('btn-import').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        if(!parsed.config || !Array.isArray(parsed.items) || !Array.isArray(parsed.metas)) throw new Error('formato inválido');
+        confirmDialog('Importar este backup vai substituir todos os dados atuais. Deseja continuar?', ()=>{
+          state = parsed;
+          state.config.isDemo = false;
+          saveState();
+          renderView(currentView());
+          renderDashboard();
+          toast('Backup importado com sucesso.', 'green');
+        });
+      }catch(err){
+        toast('Arquivo inválido. Selecione um backup exportado por este aplicativo.', 'red');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+  document.getElementById('btn-reset-all').addEventListener('click', ()=>{
+    confirmDialog('Isso vai apagar TODOS os seus dados salvos neste navegador, incluindo pendências, histórico e metas. Essa ação não pode ser desfeita. Deseja continuar?', ()=>{
+      state = { config:{ saldoInicial:0, pontosFixosMensais:0, diaRecebimento:1, metaPrincipalId:null, isDemo:false, theme: state.config.theme }, items:[], metas:[] };
+      saveState();
+      renderView(currentView());
+      renderDashboard();
+      toast('Todos os dados foram apagados.', 'green');
+    });
+  });
+});
+
+/* =====================================================================================
+   INIT / EVENT WIRING
+   ===================================================================================== */
+function currentView(){
+  const active = document.querySelector('.view.active');
+  return active ? active.id.replace('view-','') : 'dashboard';
+}
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', state.config.theme==='dark' ? 'dark' : 'light');
+  document.getElementById('theme-switch').classList.toggle('on', state.config.theme==='dark');
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  state = loadState();
+  applyTheme();
+
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.addEventListener('click', ()=> switchView(btn.dataset.view));
+  });
+  document.getElementById('hamburger-btn').addEventListener('click', ()=>{
+    document.getElementById('sidebar').classList.add('mobile-open');
+    document.getElementById('sidebar-backdrop').classList.remove('hidden');
+  });
+  document.getElementById('sidebar-backdrop').addEventListener('click', ()=>{
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('sidebar-backdrop').classList.add('hidden');
+  });
+  document.getElementById('theme-switch').addEventListener('click', ()=>{
+    state.config.theme = state.config.theme==='dark' ? 'light' : 'dark';
+    saveState(); applyTheme();
+    if(currentView()==='dashboard') renderChartsDashboard();
+  });
+
+  document.getElementById('btn-add-pendencia').addEventListener('click', ()=> openPendenciaModal(null));
+  document.getElementById('btn-add-meta').addEventListener('click', ()=> openMetaModal(null));
+
+  // filters
+  ['pend-search','pend-filter-status','pend-filter-tipo'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderPendentes);
+    document.getElementById(id).addEventListener('change', renderPendentes);
+  });
+  ['hist-search','hist-filter-status','hist-filter-tipo'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderHistorico);
+    document.getElementById(id).addEventListener('change', renderHistorico);
+  });
+
+  // sortable headers
+  document.querySelectorAll('#tbl-pendencias thead th.sortable').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sort;
+      pendSort.dir = (pendSort.key===key) ? -pendSort.dir : 1;
+      pendSort.key = key;
+      renderPendentes();
+    });
+  });
+  document.querySelectorAll('#tbl-historico thead th.sortable').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sort;
+      histSort.dir = (histSort.key===key) ? -histSort.dir : 1;
+      histSort.key = key;
+      renderHistorico();
+    });
+  });
+
+  renderDashboard();
+});
+</script>
+</body>
+</html>
