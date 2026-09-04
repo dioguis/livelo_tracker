@@ -24,7 +24,7 @@ HTML, CSS e JavaScript puro, com Chart.js para os gráficos. Sem dependências o
 ## Link
 
 [Acessar o projeto](#)
-*(atualizar com o link do GitHub Pages)*
+*(https://dioguis.github.io/livelo_tracker/)*
 
 ## Sobre o projeto
 
